@@ -103,7 +103,6 @@ Breadcrumb.render = function (routeName) {
  */
 FlowRouter.onRouteRegister(function (route) {
   if (route.options.breadcrumb) {
-    console.log('registering route', route);
     Breadcrumb.register(route);
   }
 });
