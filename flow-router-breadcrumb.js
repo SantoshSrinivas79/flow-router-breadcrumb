@@ -1,93 +1,116 @@
-var Breadcrumb = {};
+const Breadcrumb = {};
+let dataArray = [];
 
 // Register
-var data = {};
+const data = {};
 Breadcrumb.register = function (route) {
-    route.options.breadcrumb.title = route.options.breadcrumb.title || 'No Title';
-
-    data[route.name] = route;
-};
-
-// Render
-var dataArray = [];
-Breadcrumb.render = function (routeName) {
-    dataArray = []; // Clear data array for the first time
-
-    var routeName = routeName || FlowRouter.getRouteName();
-    var getRouter = data[routeName];
-
-    // Gen route url
-    var paramAndQuery = genParamAndQuery(getRouter.options.breadcrumb);
-    var url = FlowRouter.path(routeName, paramAndQuery.params, paramAndQuery.queryParams);
-
-    // Push data
-    dataArray.push({
-        url: url,
-        title: getRouter.options.breadcrumb.title,
-        activeClass: 'active'
-    });
-
-    // Check parent
-    if (getRouter.options.breadcrumb.parent) {
-        getParent(getRouter.options.breadcrumb.parent)
-    }
-
-    return dataArray.reverse();
-};
-
-// Get parent router
-var getParent = function (route) {
-    var getRouter = data[route];
-
-    // Gen route url
-    var paramAndQuery = genParamAndQuery(getRouter.options.breadcrumb);
-    var url = FlowRouter.path(route, paramAndQuery.params, paramAndQuery.queryParams);
-
-    // Push data
-    dataArray.push({
-        url: url,
-        title: getRouter.options.breadcrumb.title,
-        activeClass: ''
-    });
-
-    // Check parent parent
-    if (getRouter.options.breadcrumb.parent) {
-        getParent(getRouter.options.breadcrumb.parent)
-    }
-
-    return false;
+  const _route = {};
+  Object.assign(_route, route);
+  if (!_route.options.breadcrumb.title) {
+    _route.options.breadcrumb.title = 'No Title';
+  }
+  data[route.name] = _route;
 };
 
 // Generate param and query
-var genParamAndQuery = function (breadcrumb) {
-    // Check is array
-    breadcrumb.params = _.isArray(breadcrumb.params) ? breadcrumb.params : [breadcrumb.params];
-    breadcrumb.queryParams = _.isArray(breadcrumb.queryParams) ? breadcrumb.queryParams : [breadcrumb.queryParams];
+const genParamAndQuery = (breadcrumb) => {
+  const _breadcrumb = {};
+  Object.assign(_breadcrumb, breadcrumb);
 
-    var params = {};
-    _.each(breadcrumb.params, function (o) {
-        params[o] = FlowRouter.getParam(o);
-    });
-    var queryParams = {};
-    _.each(breadcrumb.queryParams, function (o) {
-        queryParams[o] = FlowRouter.getQueryParam(o);
-    });
+  // Check is array
+  _breadcrumb.params = _.isArray(_breadcrumb.params) ?
+    _breadcrumb.params : [_breadcrumb.params];
+  _breadcrumb.queryParams = _.isArray(_breadcrumb.queryParams) ?
+    _breadcrumb.queryParams : [_breadcrumb.queryParams];
 
-    return {params: params, queryParams: queryParams};
+  const params = {};
+  _.each(_breadcrumb.params, function (o) {
+    params[o] = FlowRouter.getParam(o);
+  });
+  const queryParams = {};
+  _.each(_breadcrumb.queryParams, function (o) {
+    queryParams[o] = FlowRouter.getQueryParam(o);
+  });
+
+  return {
+    params: params,
+    queryParams: queryParams,
+  };
 };
+
+// Get parent router
+const getParent = (route) => {
+  const getRouter = data[route];
+
+  // Gen route url
+  const paramAndQuery = genParamAndQuery(getRouter.options.breadcrumb);
+  const url = FlowRouter.path(route, paramAndQuery.params,
+    paramAndQuery.queryParams);
+
+  // Push data
+  dataArray.push({
+    url: url,
+    title: getRouter.options.breadcrumb.title,
+    activeClass: '',
+  });
+
+  // Check parent parent
+  if (getRouter.options.breadcrumb.parent) {
+    getParent(getRouter.options.breadcrumb.parent);
+  }
+
+  return false;
+};
+
+// Compute url
+const computeUrl = () => {
+  dataArray = []; // Clear data array for the first time
+
+  const routeName = routeName || FlowRouter.getRouteName();
+  const getRouter = data[routeName];
+
+  if (!getRouter) {
+    return;
+  }
+
+  // Gen route url
+  const paramAndQuery = genParamAndQuery(getRouter.options.breadcrumb);
+  const url = FlowRouter.path(routeName, paramAndQuery.params,
+    paramAndQuery.queryParams);
+
+  // Push data
+  dataArray.push({
+    url: url,
+    title: getRouter.options.breadcrumb.title,
+    activeClass: 'active',
+  });
+
+  // Check parent
+  if (getRouter.options.breadcrumb.parent) {
+    getParent(getRouter.options.breadcrumb.parent);
+  }
+};
+
+// Render
+Breadcrumb.render = function (routeName) {
+  computeUrl(routeName);
+  return dataArray.reverse();
+};
+
 
 /**
  * Register to flow router
  */
 FlowRouter.onRouteRegister(function (route) {
-    if (route.options.breadcrumb) {
-        Breadcrumb.register(route);
-    }
+  if (route.options.breadcrumb) {
+    console.log('registering route', route);
+    Breadcrumb.register(route);
+  }
 });
 
 /**
  * Template helper
  */
 Template.registerHelper('breadcrumb', function () {
-    return Breadcrumb.render();
+  return Breadcrumb.render();
 });
