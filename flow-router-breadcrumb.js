@@ -110,6 +110,13 @@ FlowRouter.onRouteRegister(function (route) {
 });
 
 /**
+ * get all Breadcrumbs
+ */
+window.getBreadcrumbs = function (routeName) {
+  return Breadcrumb.render(routeName);
+};
+
+/**
  * Template helper
  */
 Template.registerHelper('breadcrumb', function () {
