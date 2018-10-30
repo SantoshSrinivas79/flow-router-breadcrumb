@@ -1,3 +1,5 @@
+import {FlowRouter} from "meteor/ostrio:flow-router-extra";
+
 const Breadcrumb = {};
 let dataArray = [];
 
@@ -66,7 +68,7 @@ const getParent = (route) => {
 const computeUrl = () => {
   dataArray = []; // Clear data array for the first time
 
-  const routeName = routeName || FlowRouter.getRouteName();
+  const routeName = FlowRouter.getRouteName();
   const getRouter = data[routeName];
 
   if (!getRouter) {
